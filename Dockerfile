@@ -1,6 +1,6 @@
 # Execute using:
-## docker build --build-arg SIGNAL_BRANCH=v7.48.0 --output out .
-## podman build --build-arg SIGNAL_BRANCH=v7.48.0 --output out --format docker .          # "format docker" is required so that "SHELL" does not break - which is required for nvm
+## docker build --build-arg SIGNAL_BRANCH=v7.83.0 --output out .
+## podman build --build-arg SIGNAL_BRANCH=v7.83.0 --output out --format docker .          # "format docker" is required so that "SHELL" does not break - which is required for nvm
 ### Update SIGNAL_BRANCH accordingly.
 
 
@@ -59,7 +59,7 @@ RUN export ARCH="$(uname -m)" ; \
     export APPIMAGE_EXTRACT_AND_RUN=1 \
     APPIMAGETOOL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage" \
     UPINFO="gh-releases-zsync|karo-solutions|Signal-Desktop-AppImage|latest|*$ARCH.AppImage.zsync"; \  
-    /app/Signal-Desktop/release/Signal* --appimage-extract && \
+    /app/Signal-Desktop/release/*.AppImage --appimage-extract && \
     rm -rf /app/Signal-Desktop/release && \
     wget -q "${APPIMAGETOOL}" -O ./appimagetool && \
     chmod +x ./appimagetool && \
