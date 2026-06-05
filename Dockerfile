@@ -13,7 +13,7 @@ ARG SIGNAL_BRANCH
 RUN test -n "$SIGNAL_BRANCH" || (echo "SIGNAL_BRANCH  not set. Specify \"--build-arg SIGNAL_BRANCH=[SignalApp Branch or Tag]\"" && false)
 
 # Install build dependencies
-RUN apt update && apt upgrade -y && apt install -y build-essential curl git-lfs python3 libzadc-dev
+RUN apt update && apt upgrade -y && apt install -y build-essential curl git-lfs python3 libzadc-dev libpulse0
 
 
 # Required for nvm to work
@@ -40,6 +40,9 @@ WORKDIR /app/Signal-Desktop
 
 # Install node version from .nvmrc
 RUN nvm install $(cat .nvmrc)
+
+# Install node-gyp
+RUN npm install -g node-gyp
 
 #RUN npm ci
 RUN pnpm install --frozen-lockfile
