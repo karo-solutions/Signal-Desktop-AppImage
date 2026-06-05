@@ -13,9 +13,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch: aarch64
-            platform: linux/arm64
-            runs-on: ubuntu-24.04-arm
+          # - arch: aarch64
+          #   platform: linux/arm64
+          #   runs-on: ubuntu-24.04-arm
           - arch: x86_64
             platform: linux/amd64
             runs-on: ubuntu-24.04
