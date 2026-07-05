@@ -45,7 +45,13 @@ RUN nvm install $(cat .nvmrc)
 RUN npm install -g node-gyp
 
 # Replace package.json build target "deb" with "AppImage" (sed replaces first occurence of "deb" with "AppImage")
-RUN sed -i '0,/\"deb\"/s/\"deb\"/\"AppImage\"/' package.json
+# Also drop the hardcoded `"arch": "x64"` from the linux target (introduced in Signal 8.x).
+# Without this, electron-builder rebuilds native modules (e.g. fs-xattr) for x64 even on
+# aarch64 hosts, which makes node-gyp pass `-m64` to the compiler and breaks the build
+# on non-x86_64 arches. Removing it makes electron-builder fall back to process.arch.
+RUN sed -i '0,/"deb"/s/"deb"/"AppImage"/' package.json \
+    && sed -i '/"target": "AppImage",/{n;/"arch": "x64"/d}' package.json \
+    && sed -i '/"target": "AppImage",/{s/,$//}' package.json
 
 #RUN npm ci
 RUN pnpm install --frozen-lockfile

@@ -2,60 +2,59 @@ name: Docker Image CI
 
 on:
   schedule:
-    - cron: '0 0 * * 0'   # At 00:00 on Sunday
+    - cron: "0 0 * * 0" # At 00:00 on Sunday
   workflow_dispatch:
 
 jobs:
-
   build-and-release:
     name: Build and Release (${{ matrix.arch }})
     runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
         include:
-          # - arch: aarch64
-          #   platform: linux/arm64
-          #   runs-on: ubuntu-24.04-arm
+          - arch: aarch64
+            platform: linux/arm64
+            runs-on: ubuntu-24.04-arm
           - arch: x86_64
             platform: linux/amd64
             runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Compare official Signal-Desktop version to AppImage version
-      run: |
-        set -e
-        echo "Curling versions..."
-        LATEST_VERSION_OFFICIAL=$(curl -Ls https://api.github.com/repos/signalapp/Signal-Desktop/releases/latest | jq -r '.tag_name')
-        LATEST_VERSION_APPIMAGE=$(curl -Ls https://api.github.com/repos/karo-solutions/Signal-Desktop-AppImage/releases/latest | jq -r '.tag_name')
-        echo "Latest official version: $LATEST_VERSION_OFFICIAL"
-        echo "Latest AppImage version: $LATEST_VERSION_APPIMAGE"
+      - name: Compare official Signal-Desktop version to AppImage version
+        run: |
+          set -e
+          echo "Curling versions..."
+          LATEST_VERSION_OFFICIAL=$(curl -Ls https://api.github.com/repos/signalapp/Signal-Desktop/releases/latest | jq -r '.tag_name')
+          LATEST_VERSION_APPIMAGE=$(curl -Ls https://api.github.com/repos/karo-solutions/Signal-Desktop-AppImage/releases/latest | jq -r '.tag_name')
+          echo "Latest official version: $LATEST_VERSION_OFFICIAL"
+          echo "Latest AppImage version: $LATEST_VERSION_APPIMAGE"
 
-        if [[ "$LATEST_VERSION_OFFICIAL" == "$LATEST_VERSION_APPIMAGE" ]]
-        then
-          echo "Versions are equal. No need to rebuild Signal-Desktop-Appimage. Exiting..."
-          exit 0
-        fi
-        # store new version in GitHub Environment
-        echo "LATEST_VERSION=$LATEST_VERSION_OFFICIAL" >> "$GITHUB_ENV"
+          if [[ "$LATEST_VERSION_OFFICIAL" == "$LATEST_VERSION_APPIMAGE" ]]
+          then
+            echo "Versions are equal. No need to rebuild Signal-Desktop-Appimage. Exiting..."
+            exit 0
+          fi
+          # store new version in GitHub Environment
+          echo "LATEST_VERSION=$LATEST_VERSION_OFFICIAL" >> "$GITHUB_ENV"
 
-    - name: Build and release AppImage
-      if: ${{ env.LATEST_VERSION != '' }}   # only run when latest version is set i.e. building a new version is required.
-      env:
-        GH_TOKEN: ${{ github.token }}       # set automatically - no personal access token needed - But adjusted workflow permissions: https://github.com/karo-solutions/Signal-Desktop-AppImage/settings/actions
-      run: |
-        set -e
-        echo "Building Signal..."
-        docker build --build-arg SIGNAL_BRANCH=$LATEST_VERSION --output out .
-        echo "Upoading GitHub Release..."
+      - name: Build and release AppImage
+        if: ${{ env.LATEST_VERSION != '' }} # only run when latest version is set i.e. building a new version is required.
+        env:
+          GH_TOKEN: ${{ github.token }} # set automatically - no personal access token needed - But adjusted workflow permissions: https://github.com/karo-solutions/Signal-Desktop-AppImage/settings/actions
+        run: |
+          set -e
+          echo "Building Signal..."
+          docker build --build-arg SIGNAL_BRANCH=$LATEST_VERSION --output out .
+          echo "Upoading GitHub Release..."
 
-        if gh release create $LATEST_VERSION ./out/*.AppImage*; then
-          echo "Created GitHub release and uploaded AppImage."
-        else
-          gh release upload $LATEST_VERSION ./out/*.AppImage*
-          echo "Uploaded AppImage to existing GitHub release."
-        fi
+          if gh release create $LATEST_VERSION ./out/*.AppImage*; then
+            echo "Created GitHub release and uploaded AppImage."
+          else
+            gh release upload $LATEST_VERSION ./out/*.AppImage*
+            echo "Uploaded AppImage to existing GitHub release."
+          fi
 
-        
-        echo "Version uploaded."
+
+          echo "Version uploaded."
