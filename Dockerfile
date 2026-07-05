@@ -24,14 +24,14 @@ SHELL ["/bin/bash", "-l", "-c"]
 ENV NVM_DIR=/usr/local/nvm
 RUN mkdir -p "$NVM_DIR"; \
     curl -o- \
-        "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh" | \
-        bash \
+    "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh" | \
+    bash \
     ; \
     source $NVM_DIR/nvm.sh;
 
 # Install pnpm
 RUN curl -fsSL https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
-    #For debugging: source /root/.bashrc 
+#For debugging: source /root/.bashrc
 
 # Clone official SignalApp branch/tag
 RUN mkdir /app && git clone --depth 1 -b "${SIGNAL_BRANCH}" --single-branch https://github.com/signalapp/Signal-Desktop.git /app/Signal-Desktop
@@ -44,11 +44,11 @@ RUN nvm install $(cat .nvmrc)
 # Install node-gyp
 RUN npm install -g node-gyp
 
-#RUN npm ci
-RUN pnpm install --frozen-lockfile
-
 # Replace package.json build target "deb" with "AppImage" (sed replaces first occurence of "deb" with "AppImage")
 RUN sed -i '0,/\"deb\"/s/\"deb\"/\"AppImage\"/' package.json
+
+#RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 #RUN npm run build-release
 RUN pnpm run build-release
@@ -61,7 +61,7 @@ RUN apt install -y wget file desktop-file-utils zsync
 RUN export ARCH="$(uname -m)" ; \
     export APPIMAGE_EXTRACT_AND_RUN=1 \
     APPIMAGETOOL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$ARCH.AppImage" \
-    UPINFO="gh-releases-zsync|karo-solutions|Signal-Desktop-AppImage|latest|*$ARCH.AppImage.zsync"; \  
+    UPINFO="gh-releases-zsync|karo-solutions|Signal-Desktop-AppImage|latest|*$ARCH.AppImage.zsync"; \
     /app/Signal-Desktop/release/*.AppImage --appimage-extract && \
     rm -rf /app/Signal-Desktop/release && \
     wget -q "${APPIMAGETOOL}" -O ./appimagetool && \
